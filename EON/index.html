@@ -1,0 +1,824 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EON — The Living Universe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #050712;
+  --panel: rgba(13, 19, 39, .78);
+  --border: rgba(143, 166, 255, .18);
+  --text: #f2f5ff;
+  --muted: #909bbd;
+  --cyan: #76edff;
+  --purple: #a78bfa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, sans-serif;
+  overflow-x: hidden;
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 4px;
+}
+#universe {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+.ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 44%, transparent 10%, #050712 85%),
+    linear-gradient(180deg, rgba(5,7,18,.15), rgba(5,7,18,.72));
+}
+header {
+  height: 84px;
+  padding: 0 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(5,7,18,.4);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 5;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon {
+  width: 43px; height: 43px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 24px #76edff25, inset 0 0 18px #76edff12;
+  font-size: 24px;
+}
+.brand-name {
+  font: 700 25px Orbitron, sans-serif;
+  letter-spacing: 5px;
+}
+.brand-sub { font-size: 9px; color: var(--muted); letter-spacing: 2px; margin-top: 5px; }
+nav { display: flex; align-items: center; gap: 28px; }
+nav button {
+  border: 0; background: transparent; color: var(--muted);
+  font-size: 11px; letter-spacing: 1.3px; transition: .2s;
+}
+nav button:hover, nav button.active { color: var(--cyan); }
+.header-actions { display: flex; gap: 10px; }
+.icon-btn {
+  width: 39px; height: 39px; border: 1px solid var(--border);
+  color: var(--text); background: #ffffff08; border-radius: 50%;
+}
+.icon-btn:hover { border-color: var(--cyan); }
+main { max-width: 1440px; padding: 0 5%; margin: auto; }
+.hero { text-align: center; padding: 45px 10px 12px; }
+.eyebrow {
+  color: var(--cyan); font-size: 10px; letter-spacing: 4px;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.pulse {
+  width: 7px; height: 7px; background: var(--cyan); border-radius: 50%;
+  box-shadow: 0 0 12px var(--cyan); animation: pulse 1.8s infinite;
+}
+h1 {
+  font: 500 clamp(27px, 4vw, 49px) Orbitron, sans-serif;
+  letter-spacing: 2px; margin: 19px 0 12px;
+}
+h1 span {
+  color: var(--cyan);
+  text-shadow: 0 0 30px #76edff3b;
+}
+.hero p { color: var(--muted); font-size: 13px; line-height: 1.8; }
+.stage {
+  min-height: 420px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  perspective: 900px;
+}
+.star-core {
+  position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: white; box-shadow: 0 0 20px 7px #8eaaff88;
+}
+.orbit {
+  position: absolute; border: 1px solid #9baeff20;
+  border-radius: 50%; transform: rotateX(65deg);
+  pointer-events: none;
+}
+.orbit.one { width: 240px; height: 240px; }
+.orbit.two { width: 390px; height: 390px; }
+.orbit.three { width: 550px; height: 550px; }
+.planet {
+  position: absolute;
+  border: 0; border-radius: 50%;
+  transition: transform .35s, filter .35s;
+  animation: float 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px var(--glow));
+}
+.planet:hover, .planet.selected {
+  transform: scale(1.18);
+  filter: drop-shadow(0 0 27px var(--glow)) brightness(1.18);
+}
+.planet::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(125deg, #ffffff85, transparent 45%, #0000009c);
+}
+.planet-a {
+  width: 104px; height: 104px;
+  left: calc(50% - 52px); top: calc(50% - 52px);
+  --glow: #46baff;
+  background: radial-gradient(circle at 30% 25%, #d8faff, #3996ef 24%, #1745a0 62%, #090c31);
+  animation-delay: -.5s;
+}
+.planet-b {
+  width: 52px; height: 52px; left: calc(50% + 118px);
+  top: calc(50% - 89px); --glow: #b995ff;
+  background: radial-gradient(circle at 30% 25%, #f3ddff, #a86aff 30%, #5428a4 75%, #140a32);
+  animation-delay: -1.5s;
+}
+.planet-c {
+  width: 67px; height: 67px; left: calc(50% - 190px);
+  top: calc(50% + 65px); --glow: #ffb66d;
+  background: radial-gradient(circle at 28% 25%, #fff0b9, #ff9650 34%, #a93137 75%, #310b26);
+  animation-delay: -2s;
+}
+.planet-d {
+  width: 37px; height: 37px; left: calc(50% + 13px);
+  top: calc(50% - 193px); --glow: #72ffca;
+  background: radial-gradient(circle at 28% 25%, #e0ffec, #4ad9ae 38%, #167c84 78%, #082f46);
+  animation-delay: -3s;
+}
+.planet-e {
+  width: 43px; height: 43px; left: calc(50% + 206px);
+  top: calc(50% + 96px); --glow: #ff7eac;
+  background: radial-gradient(circle at 28% 25%, #ffe1f0, #f56ba3 40%, #87366f 78%, #29102e);
+  animation-delay: -2.4s;
+}
+.planet-label {
+  position: absolute; pointer-events: none;
+  font-size: 9px; color: #c3cbe9; letter-spacing: 2px;
+  text-shadow: 0 1px 7px #000; white-space: nowrap;
+}
+.label-a { left: calc(50% - 20px); top: calc(50% + 63px); }
+.label-b { left: calc(50% + 120px); top: calc(50% - 25px); }
+.label-c { left: calc(50% - 190px); top: calc(50% + 107px); }
+.label-d { left: calc(50% + 34px); top: calc(50% - 191px); }
+.label-e { left: calc(50% + 206px); top: calc(50% + 147px); }
+.saturn-ring {
+  position: absolute; width: 70px; height: 20px; border: 3px solid #d7aaffb5;
+  border-radius: 50%; transform: rotate(-22deg);
+  pointer-events: none;
+}
+.saturn-ring.b { left: calc(50% + 109px); top: calc(50% - 72px); }
+.stage-hint {
+  position: absolute; bottom: 5px; color: #8d99b7;
+  font-size: 9px; letter-spacing: 2px;
+}
+.dashboard {
+  display: grid; grid-template-columns: 1fr 1.35fr 1fr;
+  gap: 15px; margin: 20px 0 24px;
+}
+.panel {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  border-radius: 14px; padding: 20px; min-width: 0;
+  box-shadow: 0 10px 50px #00000012;
+}
+.panel-title {
+  font-size: 10px; letter-spacing: 2px; color: #aebbe0;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 17px;
+}
+.status-dot { color: #78ffbd; font-size: 9px; }
+.world-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 7px; border-radius: 9px;
+  cursor: pointer; transition: .2s;
+}
+.world-row:hover, .world-row.active { background: #9aaaff12; }
+.world-orb {
+  width: 31px; height: 31px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 12px var(--orb);
+}
+.world-info { flex: 1; min-width: 0; }
+.world-info strong { font-size: 11px; display: block; font-weight: 500; }
+.world-info small { color: var(--muted); font-size: 9px; display: block; margin-top: 4px; }
+.world-check { font-size: 11px; color: var(--cyan); }
+.scan-name { font: 600 20px Orbitron, sans-serif; margin-bottom: 9px; }
+.scan-desc { font-size: 11px; color: var(--muted); line-height: 1.8; min-height: 39px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 17px; }
+.stat {
+  border: 1px solid #aabaff16; border-radius: 8px;
+  padding: 12px; background: #ffffff03;
+}
+.stat small { color: var(--muted); font-size: 9px; display: block; margin-bottom: 7px; }
+.stat strong { font: 500 13px Orbitron, sans-serif; color: var(--cyan); }
+.primary-btn {
+  width: 100%; border: 1px solid #76edff55; color: var(--cyan);
+  background: #76edff0c; border-radius: 8px; padding: 12px;
+  font-size: 10px; letter-spacing: 1.5px; margin-top: 14px;
+  transition: .25s;
+}
+.primary-btn:hover { background: #76edff1c; box-shadow: 0 0 25px #76edff12; }
+.mission {
+  padding: 12px 0; border-bottom: 1px solid #ffffff0a;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.mission:last-child { border: 0; }
+.mission-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: #a78bfa12; color: var(--purple);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.mission strong { font-size: 10px; display: block; font-weight: 500; }
+.mission small { color: var(--muted); font-size: 9px; display: block; margin-top: 5px; line-height: 1.5; }
+.progress { height: 3px; background: #ffffff12; border-radius: 9px; margin-top: 8px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0; background: var(--cyan); transition: width .3s; }
+.bottom-stats {
+  display: flex; justify-content: space-between; gap: 15px;
+  border-top: 1px solid #ffffff0c; padding: 20px 0 30px;
+  color: var(--muted); font-size: 10px; flex-wrap: wrap;
+}
+.bottom-stats strong { color: var(--text); font-weight: 500; }
+.toast {
+  position: fixed; bottom: 25px; left: 50%;
+  transform: translate(-50%, 20px); opacity: 0;
+  pointer-events: none; z-index: 30;
+  padding: 13px 20px; border-radius: 10px;
+  border: 1px solid var(--border); background: #10172b;
+  color: var(--cyan); font-size: 12px;
+  transition: .25s; max-width: 90%; text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 20;
+  background: #02030bd9; backdrop-filter: blur(12px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  max-width: 520px; width: 100%; padding: 30px;
+  background: #0c1124; border: 1px solid var(--border);
+  border-radius: 18px; position: relative;
+}
+.close-modal {
+  position: absolute; right: 16px; top: 15px;
+  border: 0; background: transparent; color: var(--muted); font-size: 22px;
+}
+.modal h2 { font: 600 20px Orbitron, sans-serif; margin-bottom: 12px; }
+.modal p { font-size: 12px; color: var(--muted); line-height: 1.9; }
+.modal input {
+  width: 100%; margin-top: 16px; padding: 13px;
+  border: 1px solid var(--border); background: #ffffff06;
+  color: white; border-radius: 8px;
+}
+.modal-list { margin-top: 18px; display: grid; gap: 10px; }
+.modal-list div { color: #bdc8e8; font-size: 12px; }
+footer { text-align: center; padding: 15px 10px 28px; font-size: 9px; letter-spacing: 2px; color: #65708e; }
+@keyframes float { 0%,100% { margin-top: 0; } 50% { margin-top: -8px; } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+@media (max-width: 950px) {
+  header { padding: 0 4%; }
+  nav { gap: 13px; }
+  nav button { font-size: 9px; }
+  .dashboard { grid-template-columns: 1fr 1fr; }
+  .dashboard .panel:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  header { height: 70px; }
+  .brand-name { font-size: 19px; }
+  .brand-sub { font-size: 7px; }
+  nav { display: none; }
+  .header-actions { gap: 6px; }
+  .icon-btn { width: 34px; height: 34px; }
+  main { padding: 0 4%; }
+  .hero { padding-top: 35px; }
+  h1 { letter-spacing: 0; }
+  .hero p { font-size: 11px; }
+  .stage { min-height: 340px; overflow: hidden; }
+  .orbit.one { width: 190px; height: 190px; }
+  .orbit.two { width: 290px; height: 290px; }
+  .orbit.three { width: 390px; height: 390px; }
+  .planet-a { width: 78px; height: 78px; left: calc(50% - 39px); top: calc(50% - 39px); }
+  .planet-b { left: calc(50% + 70px); top: calc(50% - 75px); }
+  .planet-c { left: calc(50% - 135px); top: calc(50% + 53px); }
+  .planet-d { left: calc(50% + 7px); top: calc(50% - 143px); }
+  .planet-e { left: calc(50% + 135px); top: calc(50% + 67px); }
+  .saturn-ring.b { left: calc(50% + 61px); top: calc(50% - 59px); width: 69px; }
+  .label-a { left: calc(50% - 20px); top: calc(50% + 48px); }
+  .label-b { left: calc(50% + 70px); top: calc(50% - 14px); }
+  .label-c { left: calc(50% - 135px); top: calc(50% + 95px); }
+  .label-d { left: calc(50% + 22px); top: calc(50% - 142px); }
+  .label-e { left: calc(50% + 135px); top: calc(50% + 113px); }
+  .dashboard { grid-template-columns: 1fr; }
+  .dashboard .panel:last-child { grid-column: auto; }
+  .panel { padding: 17px; }
+  .bottom-stats { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<canvas id="universe" aria-hidden="true"></canvas>
+<div class="ambient"></div>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">✧</div>
+    <div>
+      <div class="brand-name">EON</div>
+      <div class="brand-sub">THE LIVING UNIVERSE</div>
+    </div>
+  </div>
+  <nav>
+    <button class="active" data-nav="explore">EXPLORE</button>
+    <button data-nav="worlds">WORLDS</button>
+    <button data-nav="missions">MISSIONS</button>
+    <button data-nav="discoveries">DISCOVERIES</button>
+  </nav>
+  <div class="header-actions">
+    <button class="icon-btn" id="soundBtn" title="Toggle sound" aria-label="Toggle sound">♫</button>
+    <button class="icon-btn" id="profileBtn" title="Explorer profile" aria-label="Explorer profile">◎</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="explore">
+    <div class="eyebrow"><span class="pulse"></span> GALACTIC EXPLORATION SYSTEM</div>
+    <h1>THE UNIVERSE IS <span>YOURS</span></h1>
+    <p>Every star holds a secret. Every world tells a story.<br>Begin your journey into the unknown.</p>
+  </section>
+
+  <section class="stage" id="worldStage" aria-label="Interactive universe">
+    <div class="orbit one"></div>
+    <div class="orbit two"></div>
+    <div class="orbit three"></div>
+    <div class="star-core"></div>
+
+    <button class="planet planet-a selected" data-planet="a" aria-label="Explore Aether"></button>
+    <button class="planet planet-b" data-planet="b" aria-label="Explore Nyx"></button>
+    <button class="planet planet-c" data-planet="c" aria-label="Explore Solara"></button>
+    <button class="planet planet-d" data-planet="d" aria-label="Explore Verdant"></button>
+    <button class="planet planet-e" data-planet="e" aria-label="Explore Umbra"></button>
+    <div class="saturn-ring b"></div>
+
+    <div class="planet-label label-a">AETHER</div>
+    <div class="planet-label label-b">NYX</div>
+    <div class="planet-label label-c">SOLARA</div>
+    <div class="planet-label label-d">VERDANT</div>
+    <div class="planet-label label-e">UMBRA</div>
+    <div class="stage-hint">✦ &nbsp; SELECT A PLANET TO BEGIN EXPLORING &nbsp; ✦</div>
+  </section>
+
+  <section class="dashboard">
+    <div class="panel" id="worlds">
+      <div class="panel-title"><span>KNOWN WORLDS</span><span class="status-dot">● ONLINE</span></div>
+      <div id="worldList"></div>
+    </div>
+
+    <div class="panel" id="scanPanel">
+      <div class="panel-title"><span>PLANETARY SCANNER</span><span>◈ EON-01</span></div>
+      <div class="scan-name" id="planetName">AETHER</div>
+      <p class="scan-desc" id="planetDesc">A luminous ocean world where ancient energy flows beneath crystalline seas.</p>
+      <div class="stat-grid">
+        <div class="stat"><small>ENVIRONMENT</small><strong id="planetType">Oceanic</strong></div>
+        <div class="stat"><small>TEMPERATURE</small><strong id="planetTemp">18°C</strong></div>
+        <div class="stat"><small>RISK LEVEL</small><strong id="planetRisk">LOW</strong></div>
+        <div class="stat"><small>DISCOVERY</small><strong id="planetDiscovery">UNKNOWN</strong></div>
+      </div>
+      <button class="primary-btn" id="scanBtn">⌕ &nbsp; SCAN THIS WORLD</button>
+      <button class="primary-btn" id="discoverBtn">✦ &nbsp; RECORD DISCOVERY</button>
+    </div>
+
+    <div class="panel" id="missions">
+      <div class="panel-title"><span>ACTIVE MISSIONS</span><span id="missionCount">0/3</span></div>
+      <div class="mission">
+        <div class="mission-icon">⌕</div>
+        <div style="flex:1">
+          <strong>First Contact</strong>
+          <small>Scan any planet to learn its secrets.</small>
+          <div class="progress"><div class="progress-fill" id="missionScan"></div></div>
+        </div>
+      </div>
+      <div class="mission">
+        <div class="mission-icon">✧</div>
+        <div style="flex:1">
+          <strong>Cosmic Cartographer</strong>
+          <small>Record discoveries across the universe.</small>
+          <div class="progress"><div class="progress-fill" id="missionDiscover"></div></div>
+        </div>
+      </div>
+      <div class="mission">
+        <div class="mission-icon">◎</div>
+        <div style="flex:1">
+          <strong>Beyond the Horizon</strong>
+          <small>Explore three different worlds.</small>
+          <div class="progress"><div class="progress-fill" id="missionExplore"></div></div>
+        </div>
+      </div>
+      <button class="primary-btn" id="missionBtn">VIEW MISSION REPORT</button>
+    </div>
+  </section>
+
+  <section class="bottom-stats">
+    <span>EXPLORER <strong id="explorerName">STARCHASER</strong></span>
+    <span>WORLDS SCANNED <strong id="scannedCount">0</strong></span>
+    <span>DISCOVERIES <strong id="discoveryCount">0</strong></span>
+    <span>EXPLORATION XP <strong id="xpCount">0</strong></span>
+    <span>SYSTEM <strong style="color:#78ffbd">OPERATIONAL</strong></span>
+  </section>
+</main>
+
+<footer>EON EXPLORATION INITIATIVE · UNKNOWN IS ONLY THE BEGINNING</footer>
+
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <button class="close-modal" id="closeModal" aria-label="Close dialog">×</button>
+    <h2 id="modalTitle">EXPLORER PROFILE</h2>
+    <p id="modalText">Your journey through the universe begins here.</p>
+    <div id="modalContent"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const planets = [
+    { id:"a", name:"AETHER", type:"Oceanic", temp:"18°C", risk:"LOW",
+      color:"#69cfff", desc:"A luminous ocean world where ancient energy flows beneath crystalline seas." },
+    { id:"b", name:"NYX", type:"Shadow world", temp:"-84°C", risk:"HIGH",
+      color:"#bb91ff", desc:"A mysterious twilight planet wrapped in violet storms and forgotten ruins." },
+    { id:"c", name:"SOLARA", type:"Volcanic", temp:"412°C", risk:"EXTREME",
+      color:"#ffad6c", desc:"A fiery world of molten rivers, towering volcanoes and rare solar minerals." },
+    { id:"d", name:"VERDANT", type:"Forest world", temp:"24°C", risk:"LOW",
+      color:"#6fffc1", desc:"A lush green planet with floating forests and an ecosystem unlike anything known." },
+    { id:"e", name:"UMBRA", type:"Ice world", temp:"-163°C", risk:"MEDIUM",
+      color:"#ff8fbe", desc:"A frozen frontier hiding ancient structures beneath its rose-colored ice." }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = "eon_universe_v1";
+
+  let state = {
+    scanned: [],
+    discoveries: [],
+    xp: 0,
+    explorer: "STARCHASER",
+    sound: false
+  };
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved && Array.isArray(saved.scanned) &&
+        Array.isArray(saved.discoveries) && typeof saved.xp === "number") {
+      state = { ...state, ...saved };
+    }
+  } catch (e) {
+    console.warn("Saved EON data could not be loaded.");
+  }
+
+  let selectedId = "a";
+  let audioContext = null;
+  let toastTimer = null;
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      showToast("Browser storage unavailable. Progress may not persist.");
+    }
+  }
+
+  function showToast(message) {
+    $("toast").textContent = message;
+    $("toast").classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $("toast").classList.remove("show"), 2600);
+  }
+
+  function currentPlanet() {
+    return planets.find(p => p.id === selectedId) || planets[0];
+  }
+
+  function renderWorldList() {
+    $("worldList").innerHTML = "";
+    planets.forEach(p => {
+      const row = document.createElement("div");
+      row.className = "world-row" + (p.id === selectedId ? " active" : "");
+      row.tabIndex = 0;
+      row.setAttribute("role", "button");
+      row.setAttribute("aria-label", "Select " + p.name);
+      const orb = document.createElement("div");
+      orb.className = "world-orb";
+      orb.style.setProperty("--orb", p.color);
+      orb.style.background = `radial-gradient(circle at 30% 25%, white, ${p.color} 35%, #171a42 85%)`;
+      const info = document.createElement("div");
+      info.className = "world-info";
+      const strong = document.createElement("strong");
+      strong.textContent = p.name;
+      const small = document.createElement("small");
+      small.textContent = p.type;
+      info.append(strong, small);
+      const check = document.createElement("span");
+      check.className = "world-check";
+      check.textContent = state.discoveries.includes(p.id) ? "✓" : (state.scanned.includes(p.id) ? "⌕" : "·");
+      row.append(orb, info, check);
+      row.addEventListener("click", () => selectPlanet(p.id));
+      row.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          selectPlanet(p.id);
+        }
+      });
+      $("worldList").appendChild(row);
+    });
+  }
+
+  function render() {
+    const p = currentPlanet();
+    $("planetName").textContent = p.name;
+    $("planetDesc").textContent = p.desc;
+    $("planetType").textContent = p.type;
+    $("planetTemp").textContent = p.temp;
+    $("planetRisk").textContent = p.risk;
+    $("planetDiscovery").textContent =
+      state.discoveries.includes(p.id) ? "RECORDED" :
+      state.scanned.includes(p.id) ? "SCANNED" : "UNKNOWN";
+    $("scannedCount").textContent = state.scanned.length;
+    $("discoveryCount").textContent = state.discoveries.length;
+    $("xpCount").textContent = state.xp;
+    $("explorerName").textContent = state.explorer;
+    $("missionCount").textContent =
+      [state.scanned.length > 0, state.discoveries.length > 0, state.scanned.length >= 3]
+      .filter(Boolean).length + "/3";
+    $("missionScan").style.width = state.scanned.length ? "100%" : "0%";
+    $("missionDiscover").style.width = state.discoveries.length ? "100%" : "0%";
+    $("missionExplore").style.width = Math.min(100, state.scanned.length / 3 * 100) + "%";
+
+    document.querySelectorAll(".planet").forEach(el => {
+      el.classList.toggle("selected", el.dataset.planet === selectedId);
+    });
+    renderWorldList();
+  }
+
+  function selectPlanet(id) {
+    if (!planets.some(p => p.id === id)) return;
+    selectedId = id;
+    render();
+    playTone(440, 0.045);
+  }
+
+  function scanPlanet() {
+    const p = currentPlanet();
+    if (state.scanned.includes(p.id)) {
+      showToast(p.name + " has already been scanned.");
+      return;
+    }
+    state.scanned.push(p.id);
+    state.xp += 25;
+    save();
+    render();
+    playTone(660, 0.12);
+    showToast("SCAN COMPLETE: " + p.name + " · +25 XP");
+  }
+
+  function discoverPlanet() {
+    const p = currentPlanet();
+    if (!state.scanned.includes(p.id)) {
+      showToast("Scan this planet before recording a discovery.");
+      return;
+    }
+    if (state.discoveries.includes(p.id)) {
+      showToast(p.name + " is already in your discovery log.");
+      return;
+    }
+    state.discoveries.push(p.id);
+    state.xp += 50;
+    save();
+    render();
+    playTone(880, 0.16);
+    showToast("DISCOVERY RECORDED: " + p.name + " · +50 XP");
+  }
+
+  function openModal(title, text, content) {
+    $("modalTitle").textContent = title;
+    $("modalText").textContent = text;
+    $("modalContent").replaceChildren();
+    if (content) $("modalContent").appendChild(content);
+    $("modalBackdrop").classList.add("open");
+    $("closeModal").focus();
+  }
+
+  function closeModal() {
+    $("modalBackdrop").classList.remove("open");
+  }
+
+  function openDiscoveries() {
+    const box = document.createElement("div");
+    box.className = "modal-list";
+    if (!state.discoveries.length) {
+      const empty = document.createElement("div");
+      empty.textContent = "No discoveries yet. Scan and record your first world!";
+      box.appendChild(empty);
+    } else {
+      state.discoveries.forEach(id => {
+        const p = planets.find(x => x.id === id);
+        if (!p) return;
+        const line = document.createElement("div");
+        line.textContent = "✦ " + p.name + " — " + p.type + " · " + p.temp;
+        box.appendChild(line);
+      });
+    }
+    openModal("DISCOVERY LOG", "Worlds you have officially recorded.", box);
+  }
+
+  function openMissions() {
+    const box = document.createElement("div");
+    box.className = "modal-list";
+    [
+      `First Contact: ${state.scanned.length ? "COMPLETE" : "IN PROGRESS"}`,
+      `Cosmic Cartographer: ${state.discoveries.length ? "COMPLETE" : "IN PROGRESS"}`,
+      `Beyond the Horizon: ${state.scanned.length >= 3 ? "COMPLETE" : `${state.scanned.length}/3 worlds scanned`}`
+    ].forEach(t => {
+      const line = document.createElement("div");
+      line.textContent = "◈ " + t;
+      box.appendChild(line);
+    });
+    openModal("MISSION REPORT", "Your current exploration objectives.", box);
+  }
+
+  function profileModal() {
+    const input = document.createElement("input");
+    input.maxLength = 22;
+    input.value = state.explorer;
+    input.placeholder = "Enter explorer name";
+    input.setAttribute("aria-label", "Explorer name");
+
+    const button = document.createElement("button");
+    button.className = "primary-btn";
+    button.textContent = "SAVE PROFILE";
+    button.addEventListener("click", () => {
+      const name = input.value.trim().replace(/\s+/g, " ").slice(0, 22);
+      if (!name) {
+        showToast("Please enter a name.");
+        return;
+      }
+      state.explorer = name.toUpperCase();
+      save();
+      render();
+      closeModal();
+      showToast("Explorer profile saved.");
+    });
+    const box = document.createElement("div");
+    box.append(input, button);
+    openModal("EXPLORER PROFILE", "Customize your identity across the EON universe.", box);
+  }
+
+  function playTone(frequency, duration) {
+    if (!state.sound) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      audioContext = audioContext || new AudioCtx();
+      if (audioContext.state === "suspended") audioContext.resume();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.045, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    } catch (e) {
+      console.warn("Audio is unavailable.");
+    }
+  }
+
+  // Starfield canvas
+  const canvas = $("universe");
+  const ctx = canvas.getContext("2d");
+  let stars = [];
+  let width = 0, height = 0, dpr = 1;
+  let pointerX = 0, pointerY = 0;
+  let frameId = 0;
+
+  function resizeCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const count = Math.min(280, Math.floor(width * height / 4500));
+    stars = Array.from({length: count}, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: Math.random() * 1.4 + .2,
+      alpha: Math.random() * .65 + .15,
+      phase: Math.random() * 6.28,
+      speed: Math.random() * .012 + .002
+    }));
+  }
+
+  let lastFrame = 0;
+  function drawStars(timestamp) {
+    if (timestamp - lastFrame < 30) {
+      frameId = requestAnimationFrame(drawStars);
+      return;
+    }
+    lastFrame = timestamp;
+    ctx.clearRect(0, 0, width, height);
+    for (const s of stars) {
+      s.phase += s.speed;
+      const driftX = pointerX * (s.r * 2.2);
+      const driftY = pointerY * (s.r * 2.2);
+      ctx.beginPath();
+      ctx.arc(s.x + driftX, s.y + driftY, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(190,210,255,${s.alpha * (.7 + Math.sin(s.phase) * .3)})`;
+      ctx.fill();
+    }
+    frameId = requestAnimationFrame(drawStars);
+  }
+
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("pointermove", e => {
+    pointerX = (e.clientX / Math.max(1, width) - .5) * 2;
+    pointerY = (e.clientY / Math.max(1, height) - .5) * 2;
+  }, {passive: true});
+
+  document.querySelectorAll(".planet").forEach(el => {
+    el.addEventListener("click", () => selectPlanet(el.dataset.planet));
+  });
+
+  $("scanBtn").addEventListener("click", scanPlanet);
+  $("discoverBtn").addEventListener("click", discoverPlanet);
+  $("profileBtn").addEventListener("click", profileModal);
+  $("missionBtn").addEventListener("click", openMissions);
+  $("closeModal").addEventListener("click", closeModal);
+  $("modalBackdrop").addEventListener("click", e => {
+    if (e.target === $("modalBackdrop")) closeModal();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  $("soundBtn").addEventListener("click", () => {
+    state.sound = !state.sound;
+    $("soundBtn").textContent = state.sound ? "♫" : "♪";
+    $("soundBtn").style.color = state.sound ? "var(--cyan)" : "";
+    save();
+    if (state.sound) playTone(660, .12);
+    showToast(state.sound ? "Sound effects enabled." : "Sound effects disabled.");
+  });
+
+  document.querySelectorAll("[data-nav]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-nav]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const action = btn.dataset.nav;
+      if (action === "discoveries") {
+        openDiscoveries();
+      } else if (action === "missions") {
+        $("missions").scrollIntoView({behavior:"smooth", block:"center"});
+        openMissions();
+      } else {
+        const target = action === "worlds" ? $("worlds") : $("explore");
+        target.scrollIntoView({behavior:"smooth", block:"center"});
+      }
+    });
+  });
+
+  resizeCanvas();
+  frameId = requestAnimationFrame(drawStars);
+  render();
+})();
+</script>
+</body>
+</html>
